@@ -1,0 +1,97 @@
+<div class="container mt-5">
+  <div class="card shadow">
+    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
+      <h4 class="mb-0">Dashboard de Tarefas</h4>
+      <span class="badge bg-primary fs-6">
+        {{ tarefasConcluidas() }} / {{ totalTarefas() }} Concluídas
+      </span>
+    </div>
+
+    <div class="card-body">
+      <!-- Formulário de Adição Atualizado com Data -->
+      <div class="row g-2 mb-3">
+        <div class="col-md-5">
+          <input type="text" class="form-control" placeholder="O que precisa de ser feito?" [(ngModel)]="novaTarefa" (keyup.enter)="adicionarTarefa()" />
+        </div>
+        <div class="col-md-3">
+          <input type="date" class="form-control" [(ngModel)]="novoPrazo" />
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" [(ngModel)]="prioridadeSelecionada">
+            <option value="baixa">Baixa</option>
+            <option value="media">Média</option>
+            <option value="alta">Alta</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-success w-100" (click)="adicionarTarefa()">Adicionar</button>
+        </div>
+      </div>
+
+      <hr />
+
+      <!-- Barra de Pesquisa e Filtros -->
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <input type="text" class="form-control" placeholder="Pesquisar tarefas..." [(ngModel)]="busca" />
+        </div>
+        <div class="col-md-6">
+          <div class="btn-group w-100" role="group">
+            <button type="button" class="btn" [class.btn-primary]="filtro() === 'todas'" [class.btn-outline-primary]="filtro() !== 'todas'" (click)="definirFiltro('todas')">Todas</button>
+            <button type="button" class="btn" [class.btn-primary]="filtro() === 'pendentes'" [class.btn-outline-primary]="filtro() !== 'pendentes'" (click)="definirFiltro('pendentes')">Pendentes</button>
+            <button type="button" class="btn" [class.btn-primary]="filtro() === 'concluidas'" [class.btn-outline-primary]="filtro() !== 'concluidas'" (click)="definirFiltro('concluidas')">Concluídas</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de Tarefas com Edição Inline -->
+      <ul class="list-group">
+        @for (tarefa of tarefasFiltradas(); track tarefa.id) {
+          <li class="list-group-item d-flex justify-content-between align-items-center py-3" [class.border-danger]="isAtrasada(tarefa.prazo)">
+            
+            <div class="d-flex align-items-center gap-2 w-75">
+              <input class="form-check-input mt-0 me-2" type="checkbox" [checked]="tarefa.concluida" (change)="alternarStatus(tarefa.id)" />
+              
+              <!-- MODO DE EDIÇÃO vs MODO DE LEITURA -->
+              @if (tarefaEmEdicaoId() === tarefa.id) {
+                <input type="text" class="form-control form-control-sm" [(ngModel)]="tituloEditado" (keyup.enter)="salvarEdicao(tarefa.id)" (keyup.escape)="cancelarEdicao()" autofocus />
+                <button class="btn btn-sm btn-success" (click)="salvarEdicao(tarefa.id)">Salvar</button>
+                <button class="btn btn-sm btn-secondary" (click)="cancelarEdicao()">X</button>
+              } @else {
+                <span [class.text-decoration-line-through]="tarefa.concluida" [class.text-muted]="tarefa.concluida">
+                  {{ tarefa.titulo }}
+                </span>
+                
+                @if (tarefa.prazo) {
+                  <span class="badge bg-light text-dark ms-2" [class.text-danger]="isAtrasada(tarefa.prazo)">
+                    Prazo: {{ tarefa.prazo }}
+                  </span>
+                }
+
+                @if (tarefa.prioridade === 'alta') {
+                  <span class="badge bg-danger ms-2">Alta</span>
+                } @else if (tarefa.prioridade === 'media') {
+                  <span class="badge bg-warning text-dark ms-2">Média</span>
+                } @else {
+                  <span class="badge bg-secondary ms-2">Baixa</span>
+                }
+              }
+            </div>
+
+            <!-- Botões de Ação -->
+            @if (tarefaEmEdicaoId() !== tarefa.id) {
+              <div>
+                <button class="btn btn-sm btn-outline-primary me-2" (click)="iniciarEdicao(tarefa)">Editar</button>
+                <button class="btn btn-sm btn-outline-danger" (click)="excluirTarefa(tarefa.id)">Eliminar</button>
+              </div>
+            }
+          </li>
+        } @empty {
+          <div class="alert alert-light text-center my-3 border">
+            Nenhuma tarefa encontrada!
+          </div>
+        }
+      </ul>
+    </div>
+  </div>
+</div>
